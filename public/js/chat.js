@@ -19,6 +19,29 @@ const { username, room } = Qs.parse(location.search, {
   ignoreQueryPrefix: true,
 });
 
+const autoScroll = () => {
+  // new message node
+  const $newMessage = $messages.lastElementChild;
+
+  // height of new message
+  const newMessageStyle = getComputedStyle($newMessage);
+  const newMessageMargin = parseInt(newMessageStyle.marginBottom);
+  const newMessageHeight = $newMessage.offsetHeight + newMessageMargin;
+
+  // visible Height
+  const visibleHeight = $messages.offsetHeight;
+
+  // height of message container
+  const containerHeight = $messages.scrollHeight;
+
+  // how far I have scrolled
+  const scrollOffset = $messages.scrollTop + visibleHeight;
+
+  if (containerHeight - newMessageHeight <= scrollOffset) {
+    $messages.scrollTop = $messages.scrollHeight;
+  }
+};
+
 $messageForm.addEventListener("submit", (e) => {
   e.preventDefault();
   $messageFormButton.setAttribute("disabled", true);
@@ -55,6 +78,7 @@ socket.on("message", (message) => {
     createdAt: moment(message.createdAt).format("h:mm a"),
   });
   $messages.insertAdjacentHTML("beforeend", html);
+  autoScroll();
 });
 
 socket.on("location", (location) => {
@@ -63,6 +87,7 @@ socket.on("location", (location) => {
     createdAt: moment(location.createdAt).format("h:mm a"),
   });
   $messages.insertAdjacentHTML("beforeend", html);
+  autoScroll();
 });
 
 socket.emit("join", { username, room }, (error) => {
